@@ -1,6 +1,9 @@
 # Use an official Python runtime as a parent image
 FROM python:3.12
 
+LABEL maintainer="shahzaib-noor"
+# Set the working directory in the container
+WORKDIR /code
 # Install system dependencies required for potential Python packages
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -9,15 +12,32 @@ RUN apt-get update && apt-get install -y \
 
 RUN pip install poetry
 
-# Copying code from current directory to container's code directory
+RUN pip --version
+
+# # Copying code from current directory to container's code directory
 COPY . /code/
 
-# Configuration to avoid creating virtual environments inside the Docker container
+# Copy only the dependency files first
+# COPY pyproject.toml poetry.lock /code/
+
+# Check pip version
+RUN pip --version
+
+# List installed packages to ensure Poetry is installed
+RUN pip list
+
+# Check poetry version
+RUN poetry --version
+
+# # Configuration to avoid creating virtual environments inside the Docker container
 RUN poetry config virtualenv.create false
 
 RUN poetry install
 
+# Install dependencies without creating a virtual environment
+# RUN POETRY_VIRTUALENVS_CREATE=false poetry install --no-root
+
 EXPOSE 8080
 
 # Run the app. CMD can be overridden when starting the container
-CMD ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--reload"]
+CMD ["poetry", "run", "uvicorn", "order_app.main:app", "--host", "0.0.0.0", "--reload"]
